@@ -1230,7 +1230,15 @@ untar = joinDupDirs . anaFS g
       f ((a:t),b) = (a, Right [(t,b)])
 
 find :: (Eq a) => a -> FS a b -> [Path a]
-find file = undefined
+find file = filter (not . null) . cataFS (concat . g)
+    where 
+      g = map f 
+      f (a, Left b) | file == a = [[a]]
+                    | otherwise = []
+      f (a, Right l)  | file == a = map (insA a) l
+                      | otherwise = l
+      insA a [] = [a]
+      insA a l = a:l
 
 new :: (Eq a) => Path a -> b -> FS a b -> FS a b
 new = undefined
