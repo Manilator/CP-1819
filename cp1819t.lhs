@@ -1127,7 +1127,8 @@ outras funções auxiliares que sejam necessárias.
 \begin{code}
 
 inExpr :: Either Int (Op,(Expr,Expr)) -> Expr
-inExpr = undefined
+inExpr (Left x) = Num x
+inExpr (Right (Op o, (a, b))) = Bop a (Op o) b
 
 outExpr :: Expr -> Either Int (Op,(Expr,Expr))
 outExpr = undefined
