@@ -1186,32 +1186,51 @@ cos' x = prj . for loop init where
 \subsection*{Problema 4}
 Triologia ``ana-cata-hilo":
 \begin{code}
-outFS (FS l) = undefined
-outNode = undefined
+outFS (FS l) = map f l
+        where
+          f (x,y) = (x, outNode y)
+outNode (File f) = Left f 
+outNode (Dir g) = Right g
 
-baseFS f g h = undefined
+baseFS f g h = map (f >< (g -|- h))
 
 cataFS :: ([(a, Either b c)] -> c) -> FS a b -> c
-cataFS g = undefined
+cataFS g = g . recFS (cataFS g) . outFS  
 
 anaFS :: (c -> [(a, Either b c)]) -> c -> FS a b
-anaFS g = undefined
+anaFS g = inFS . recFS (anaFS g) . g
 
-hyloFS g h = undefined
+hyloFS g h = cataFS g . anaFS h
 \end{code}
 Outras funções pedidas:
 \begin{code}
 check :: (Eq a) => FS a b -> Bool
-check = undefined
+check = cataFS g
+    where 
+      g l = length l == (length $ (cataList f) $ (map fst l)) && (all (either true id) (map snd l))
+      f (Left _) = []
+      f (Right (h,t)) | elem h t = t
+                      | otherwise = (h:t)
 
 tar :: FS a b -> [(Path a, b)]
-tar = undefined
+tar = cataFS g
+    where
+      g l = concat (map f l)
+      f :: (a, Either b [([a],b)]) -> [([a],b)]
+      f (a, Left b) = [([a],b)]
+      f (a, Right lista) = map (h a) lista
+      h :: a -> ([a],b) -> ([a],b)
+      h elemento (lista2,conteudo) = (elemento:lista2,conteudo)
 
 untar :: (Eq a) => [(Path a, b)] -> FS a b
-untar = undefined
+untar = joinDupDirs . anaFS g
+    where
+      g l = map f l
+      f ([a],b) = (a,Left b)
+      f ((a:t),b) = (a, Right [(t,b)])
 
 find :: (Eq a) => a -> FS a b -> [Path a]
-find = undefined
+find file = undefined
 
 new :: (Eq a) => Path a -> b -> FS a b -> FS a b
 new = undefined
