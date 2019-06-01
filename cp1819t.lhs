@@ -1131,11 +1131,12 @@ inExpr (Left x) = Num x
 inExpr (Right (Op o, (a, b))) = Bop a (Op o) b
 
 outExpr :: Expr -> Either Int (Op,(Expr,Expr))
-outExpr = undefined
+outExpr (Num x) = Left x
+outExpr (Bop a (Op o) b) = Right(Op o, (a, b))
 
-recExpr f = undefined
+recExpr f = baseExpr id f
 
-cataExpr g = undefined
+cataExpr g = g . recExpr (cataExpr g) . outExpr
 
 teste1, teste2, teste3 :: Expr
 teste1 = read "1 + 1 * (1+1)"
