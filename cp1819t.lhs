@@ -89,17 +89,17 @@
 %---------------------------------------------------------------------------
 
 \title{
-       	    Cálculo de Programas
+               Cálculo de Programas
 \\
-       	Trabalho Prático
+           Trabalho Prático
 \\
-       	MiEI+LCC --- 2018/19
+           MiEI+LCC --- 2018/19
 }
 
 \author{
-       	\dium
+           \dium
 \\
-       	Universidade do Minho
+           Universidade do Minho
 }
 
 
@@ -415,7 +415,7 @@ estrutura da frase que representa o \uk{layout} da figura \ref{fig:L2D1}.
 \put(00.00,0.00){$(0,0)$}
 \put(80.00,50.00){$(200,200)$}
 \put(20.00,-10.00){
-	\includegraphics[width=70\unitlength]{cp1819t_media/ex3.png}
+    \includegraphics[width=70\unitlength]{cp1819t_media/ex3.png}
 }
 \end{picture}
 %
@@ -496,8 +496,8 @@ em \cite{Ol18}, página \pageref{eq:fokkinga}.}
 
 Para o caso de funções sobre os números naturais (|Nat0|, com functor |fF
 X = 1 + X|) é fácil derivar-se da lei que foi estudada uma
-	\emph{regra de algibeira}
-	\label{pg:regra}
+    \emph{regra de algibeira}
+    \label{pg:regra}
 que se pode ensinar a programadores que não tenham estudado
 \cp{Cálculo de Programas}. Apresenta-se de seguida essa regra, tomando como exemplo o
 cálculo do ciclo-\textsf{for} que implementa a função de Fibonacci, recordar
@@ -544,7 +544,7 @@ f' a b c = p1 . for loop init where
 Qual é o assunto desta questão, então? Considerem fórmula que dá a série de Taylor da
 função coseno:
 \begin{eqnarray*}
-	cos\ x = \sum_{i=0}^\infty \frac{(-1)^i}{(2i)!} x^{2i}
+    cos\ x = \sum_{i=0}^\infty \frac{(-1)^i}{(2i)!} x^{2i}
 \end{eqnarray*}
 Pretende-se o ciclo-\textsf{for} que implementa a função 
 |cos' x n| que dá o valor dessa série tomando |i| até |n| inclusivé:
@@ -691,8 +691,8 @@ prop_new = ((validPath .&&&. notDup) .&&&. (check . p2)) .==>.
 \end{propriedade}
  
 \begin{propriedade}
-	A listagem de ficheiros logo após uma adição nunca poderá ser menor que a listagem
-	de ficheiros antes dessa mesma adição.
+    A listagem de ficheiros logo após uma adição nunca poderá ser menor que a listagem
+    de ficheiros antes dessa mesma adição.
 \begin{code}
 prop_new2 :: ((Path String,String), FS String String) -> Property
 prop_new2 = validPath .==>. ((length . tar . p2) .<=. (length . tar . (uncurry (uncurry new)))) where
@@ -765,23 +765,23 @@ A função |dotFS| depois tratará de passar a estrutura do sistema de ficheiros
 Estudar o texto fonte deste trabalho para obter o efeito:\footnote{Exemplos tirados de \cite{Ol18}.} 
 \begin{eqnarray*}
 \start
-	|id = split f g|
+    |id = split f g|
 %
 \just\equiv{ universal property }
 %
         |lcbr(
-		p1 . id = f
-	)(
-		p2 . id = g
-	)|
+        p1 . id = f
+    )(
+        p2 . id = g
+    )|
 %
 \just\equiv{ identity }
 %
         |lcbr(
-		p1 = f
-	)(
-		p2 = g
-	)|
+        p1 = f
+    )(
+        p2 = g
+    )|
 \qed
 \end{eqnarray*}
 
@@ -810,9 +810,9 @@ onde se pretende implementar um ciclo que implemente
 o cálculo da aproximação até |i=n| da função exponencial $exp\ x = e^x$
 via série de Taylor:
 \begin{eqnarray}
-	exp\ x 
+    exp\ x 
 & = &
-	\sum_{i=0}^{\infty} \frac {x^i} {i!}
+    \sum_{i=0}^{\infty} \frac {x^i} {i!}
 \end{eqnarray}
 Seja $e\ x\ n = \sum_{i=0}^{n} \frac {x^i} {i!}$ a função que dá essa aproximação.
 É fácil de ver que |e x 0 = 1| e que $|e x (n+1)| = |e x n| + \frac {x^{n+1}} {(n+1)!}$.
@@ -1136,8 +1136,16 @@ recExpr f = undefined
 
 cataExpr g = undefined
 
-calcula :: Expr -> Int
-calcula = undefined
+teste1, teste2, teste3 :: Expr
+teste1 = read "1 + 1 * (1+1)"
+teste2 = read "2 + 1 * (3+2)"
+teste3 = read "0"
+
+calcula (Num x) = x
+calcula (Bop x (Op y) z) | y == "+" = (calcula x) + (calcula z)
+                         | y == "-" = (calcula x) - (calcula z)
+                         | y == "*" = (calcula x) * (calcula z)
+                         | otherwise = undefined
 
 show' = undefined
 
