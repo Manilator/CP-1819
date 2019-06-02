@@ -1134,6 +1134,9 @@ outExpr :: Expr -> Either Int (Op,(Expr,Expr))
 outExpr (Num x) = Left x
 outExpr (Bop a (Op o) b) = Right(Op o, (a, b))
 
+funcao :: String -> Expr
+funcao s = read s
+
 recExpr f = baseExpr id f
 
 cataExpr g = g . recExpr (cataExpr g) . outExpr
@@ -1149,7 +1152,9 @@ calcula (Bop x (Op y) z) | y == "+" = (calcula x) + (calcula z)
                          | y == "*" = (calcula x) * (calcula z)
                          | otherwise = undefined
 
-show' = undefined
+show' :: Expr -> String
+show' (Num x) = show x
+show' (Bop a (Op b) c) = "(" ++ (show' a) ++ " " ++ (id b) ++ " " ++ (show' c) ++ ")"
 
 compile :: String -> Codigo
 compile = undefined 
