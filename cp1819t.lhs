@@ -1134,9 +1134,6 @@ outExpr :: Expr -> Either Int (Op,(Expr,Expr))
 outExpr (Num x) = Left x
 outExpr (Bop a (Op o) b) = Right(Op o, (a, b))
 
-funcao :: String -> Expr
-funcao s = read s
-
 recExpr f = baseExpr id f
 
 cataExpr g = g . recExpr (cataExpr g) . outExpr
@@ -1191,10 +1188,22 @@ caixasAndOrigin2Pict = undefined
 \subsection*{Problema 3}
 Solução:
 \begin{code}
+
+cal x = -(x^2)/2
+
+cos' x = prj . for loop init where
+   loop (c, h, s, k) = (c + h, h * (-(x^2))/s, s + k, k + 8)
+   init = (1, a1, 12, 18)
+   a1 = -(x^2)/2
+   prj (c, h, s, k) = c
+
+{-
 cos' x = prj . for loop init where
    loop = undefined
    init = undefined
    prj = undefined
+-}
+
 \end{code}
 
 \subsection*{Problema 4}
