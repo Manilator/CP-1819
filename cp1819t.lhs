@@ -1148,7 +1148,6 @@ teste3 = read "0"
 
 calcula (Num x) = x
 calcula (Bop x (Op y) z) | y == "+" = (calcula x) + (calcula z)
-                         | y == "-" = (calcula x) - (calcula z)
                          | y == "*" = (calcula x) * (calcula z)
                          | otherwise = undefined
 
