@@ -1241,10 +1241,19 @@ find file = filter (not . null) . cataFS (concat . g)
       insA a l = a:l
 
 new :: (Eq a) => Path a -> b -> FS a b -> FS a b
-new = undefined
+new path file = untar . f (path,file) . tar 
+  where
+    f a l = a:l 
 
 cp :: (Eq a) => Path a -> Path a -> FS a b -> FS a b
-cp = undefined
+cp src fnl = untar . (f src fnl) . tar
+  where
+    f [] p2 l = l
+    f p1 [] l = l 
+    f p1 p2 [] = []
+    f p1 p2 l = (p2,procura p1 l):l
+    procura path ((p,file):t) | p == path = file
+                              | otherwise = procura path t 
 
 rm :: (Eq a) => (Path a) -> (FS a b) -> FS a b
 rm = undefined
