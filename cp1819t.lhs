@@ -1138,10 +1138,13 @@ recExpr f = baseExpr id f
 
 cataExpr g = g . recExpr (cataExpr g) . outExpr
 
-teste1, teste2, teste3 :: Expr
+teste1, teste2, teste3, teste4, teste5, teste6 :: Expr
 teste1 = read "1 + 1 * (1+1)"
 teste2 = read "2 + 1 * (3+2)"
 teste3 = read "0"
+teste4 = read "2 + 4"
+teste5 = read "3 * (2 + 4)"
+teste6 = read "(3 * 2) + 4"
 
 calcula (Num x) = x
 calcula (Bop x (Op y) z) | y == "+" = (calcula x) + (calcula z)
@@ -1152,8 +1155,25 @@ show' :: Expr -> String
 show' (Num x) = show x
 show' (Bop a (Op b) c) = "(" ++ (show' a) ++ " " ++ (id b) ++ " " ++ (show' c) ++ ")"
 
+compileAux :: Expr -> Codigo
+compileAux (Num a) = ["PUSH " ++ (show a)]
+compileAux (Bop x (Op y) z) | y == "+" = concat $ (compileAux x) : (compileAux z) : [["ADD"]]
+                            | y == "*" = concat $ (compileAux x) : (compileAux z) : [["MUL"]]
+                            | otherwise = undefined
+
 compile :: String -> Codigo
-compile = undefined 
+compile x = compileAux $ read x
+
+{-
+compile :: String -> Codigo
+compile x | r == Num _ = 
+          | r == Bop (a)(Op "+")(b) = 
+          | r == Bop ()(Op "*")() = 
+          | otherwise = undefined
+    where
+        r = read x
+-}
+
 \end{code}
 
 \subsection*{Problema 2}
