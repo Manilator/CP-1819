@@ -1230,18 +1230,17 @@ tar :: FS a b -> [(Path a, b)]
 tar = cataFS g
     where
       g l = concat (map f l)
-      f :: (a, Either b [([a],b)]) -> [([a],b)]
       f (a, Left b) = [([a],b)]
       f (a, Right lista) = map (h a) lista
-      h :: a -> ([a],b) -> ([a],b)
       h elemento (lista2,conteudo) = (elemento:lista2,conteudo)
 
 untar :: (Eq a) => [(Path a, b)] -> FS a b
-untar = joinDupDirs . anaFS g
+untar = anaFS g
     where
       g l = map f l
-      f ([a],b) = (a,Left b)
-      f ((a:t),b) = (a, Right [(t,b)])
+      f ([h], file) = (h, Left file)
+      f ((h:t),file) = (h,Right [(t,file)])
+
 
 find :: (Eq a) => a -> FS a b -> [Path a]
 find file = filter (not . null) . cataFS (concat . g)
@@ -1270,8 +1269,12 @@ cp src fnl = untar . (f src fnl) . tar
                               | otherwise = procura path t 
 
 rm :: (Eq a) => (Path a) -> (FS a b) -> FS a b
-rm = undefined
-
+rm path = untar . f path . tar
+  where 
+    f [] l = l
+    f _ [] = []
+    f path ((p,file):t) | path == p = t
+                        | otherwise = (p,file):f path t
 auxJoin :: ([(a, Either b c)],d) -> [(a, Either b (d,c))]
 auxJoin = undefined
 
