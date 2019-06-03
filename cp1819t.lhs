@@ -505,7 +505,6 @@ o sistema
 \begin{spec}
 fib 0 = 1
 fib(n+1) = f n
-
 f 0 = 1
 f (n+1) = fib n + f n
 \end{spec}
@@ -530,7 +529,6 @@ de $f\ x = a x^2 + b x + c$ derivam-se duas funções mutuamente recursivas:
 \begin{spec}
 f 0 = c
 f (n+1) = f n + k n
-
 k 0 = a + b
 k(n+1) = k n + 2 a
 \end{spec}
@@ -607,7 +605,6 @@ A definição das usuais funções |inFS| e |recFS| para este tipo é a seguinte
 \begin{code}
 inFS = FS . map (id >< inNode) 
 inNode = either File Dir
-
 recFS f = baseFS id id f
 \end{code}
 Suponha que se pretende definir como um |catamorfismo| a função que
@@ -822,10 +819,8 @@ situação:
 \begin{spec}
 e x 0 = 1
 e x (n+1) = h x n + e x n
-
 h x 0 = x
 h x (n+1) = x/(s n) * h x n
-
 s 0 = 2
 s (n+1) = 1 + s n
 \end{spec}
@@ -845,9 +840,7 @@ Tipos:
 \begin{code}
 data Expr = Num Int 
                | Bop Expr Op Expr  deriving  (Eq,Show)
-
 data Op = Op String deriving (Eq,Show)
-
 type Codigo = [String]
 \end{code}
 Functor de base:
@@ -865,15 +858,12 @@ readOp :: String -> [(Op,String)]
 readOp input = do 
                  (x,y) <- lex input
                  return ((Op x),y)
-
 readNum :: ReadS Expr
 readNum  = (map (\ (x,y) -> ((Num x), y))).reads
-
 readBinOp :: ReadS Expr
 readBinOp = (map (\ ((x,(y,z)),t) -> ((Bop x y z),t))) .
                    ((readNum `ou` (pcurvos readExp))
                     `depois` (readOp `depois` readExp))
-
 readExp :: ReadS Expr
 readExp = readBinOp `ou` (
           readNum `ou` (
@@ -881,12 +871,10 @@ readExp = readBinOp `ou` (
 \end{code}
 Combinadores:
 \begin{code}
-
 depois :: (ReadS a) -> (ReadS b) -> ReadS (a,b)
 depois _ _ [] = []
 depois r1 r2 input = [((x,y),i2) | (x,i1) <- r1 input , 
                                    (y,i2) <- r2 i1]
-
 readSeq :: (ReadS a) -> ReadS [a]
 readSeq r input 
   = case (r input) of
@@ -894,22 +882,17 @@ readSeq r input
     l -> concat (map continua l)
          where continua (a,i) = map (c a) (readSeq r i)
                c x (xs,i) = ((x:xs),i)                     
-
 ou :: (ReadS a) -> (ReadS a) -> ReadS a
 ou r1 r2 input = (r1 input) ++ (r2 input)
-
 senao :: (ReadS a) -> (ReadS a) -> ReadS a
 senao r1 r2 input = case (r1 input) of
                      [] -> r2 input
                      l  -> l
-
 readConst :: String -> ReadS String
 readConst c = (filter ((== c).fst)) . lex
-
 pcurvos = parentesis '(' ')'
 prectos = parentesis '[' ']'
 chavetas = parentesis '{' '}'
-
 parentesis :: Char -> Char -> (ReadS a) -> ReadS a
 parentesis _ _ _ [] = []
 parentesis ap pa r input 
@@ -930,19 +913,16 @@ type Origem = (Float, Float)
 \begin{code}
 col_blue = G.azure
 col_green = darkgreen
-
 darkgreen = G.dark (G.dark G.green)
 \end{code}
 Exemplos:
 \begin{code}
 ex1Caixas = G.display (G.InWindow "Problema 4" (400, 400) (40, 40)) G.white $
           crCaixa (0,0) 200 200 "Caixa azul" col_blue
-
 ex2Caixas =  G.display (G.InWindow "Problema 4" (400, 400) (40, 40)) G.white $
           caixasAndOrigin2Pict ((Comp Hb bbox gbox),(0.0,0.0)) where
           bbox = Unid ((100,200),("A",col_blue))
           gbox = Unid ((50,50),("B",col_green))
-
 ex3Caixas = G.display (G.InWindow "Problema 4" (400, 400) (40, 40)) G.white mtest where
           mtest = caixasAndOrigin2Pict $ (Comp Hb (Comp Ve bot top) (Comp Ve gbox2 ybox2), (0.0,0.0))
           bbox1 = Unid ((100,200),("A",col_blue))
@@ -983,17 +963,14 @@ Funções para gestão de sistemas de ficheiros:
 concatFS = inFS . (uncurry (++)) . (outFS >< outFS)
 mkdir (x,y) = FS [(x, Dir y)]
 mkfile (x,y) = FS [(x, File y)]
-
 joinDupDirs :: (Eq a) => (FS a b) -> (FS a b)
 joinDupDirs  = anaFS (prepOut . (id >< proc) . prepIn) where 
          prepIn = (id >< (map (id >< outFS))) . sls . (map distr) . outFS
          prepOut = (map undistr) . (uncurry (++)) . ((map i1) >< (map i2)) . (id >< (map (id >< inFS)))
          proc = concat . (map joinDup) . groupByName
          sls = split lefts rights
-
 joinDup :: [(a,[b])] -> [(a,[b])]
 joinDup = cataList (either nil g) where g = return . (split (p1 . p1) (concat . (map p2) . (uncurry (:))))
-
 createFSfromFile :: (Path a, b) -> (FS a b)
 createFSfromFile ([a],b) = mkfile(a,b)
 createFSfromFile (a:as,b) = mkdir(a, createFSfromFile (as,b))
@@ -1004,11 +981,9 @@ checkFiles :: (Eq a) => FS a b -> Bool
 checkFiles = cataFS ((uncurry (&&)) . (split f g)) where
            f = nr . (fmap p1) . lefts . (fmap distr)
            g = and . rights . (fmap p2)
-
 groupByName :: (Eq a) => [(a,[b])] -> [[(a,[b])]]
 groupByName = (groupBy (curry p)) where
             p = (uncurry (==)) . (p1 >< p1)
-
 filterPath :: (Eq a) => Path a -> [(Path a, b)] -> [(Path a, b)]
 filterPath = filter . (\p -> \(a,b) -> p == a)
 \end{code}
@@ -1068,7 +1043,6 @@ instance (Arbitrary a, Arbitrary b) => Arbitrary (FS a b) where
                      QuickCheck.arbitrary (genfs (n - 1))),
                      liftM3 genAux QuickCheck.arbitrary (genfs (n - 1)) (genfs (n - 1))]
              genAux a x y = inFS [(a, i2 x), (a, i2 y)]
-
 instance Arbitrary Expr where
    arbitrary = (genExpr 10)  where
              genExpr 0 = liftM (inExpr . i1) QuickCheck.arbitrary
@@ -1089,19 +1063,15 @@ Lógicas:
 infixr 0 .==>.
 (.==>.) :: (Testable prop) => (a -> Bool) -> (a -> prop) -> a -> Property
 p .==>. f = \a -> p a ==> f a
-
 infixr 0 .<==>.
 (.<==>.) :: (a -> Bool) -> (a -> Bool) -> a -> Property
 p .<==>. f = \a -> (p a ==> property (f a)) .&&. (f a ==> property (p a))
-
 infixr 4 .==.
 (.==.) :: Eq b => (a -> b) -> (a -> b) -> (a -> Bool)
 f .==. g = \a -> f a == g a
-
 infixr 4 .<=.
 (.<=.) :: Ord b => (a -> b) -> (a -> b) -> (a -> Bool)
 f .<=. g = \a -> f a <= g a
-
 infixr 4 .&&&.
 (.&&&.) :: (a -> Bool) -> (a -> Bool) -> (a -> Bool)
 f .&&&. g = \a -> ((f a) && (g a))
@@ -1110,7 +1080,6 @@ Compilação e execução dentro do interpretador:\footnote{Pode ser útil em te
 envolvendo \gloss{Gloss}. Nesse caso, o teste em causa deve fazer parte de uma função
 |main|.}
 \begin{code}
-
 run = do { system "ghc cp1819t" ; system "./cp1819t" }
 \end{code}
 
@@ -1125,65 +1094,96 @@ outras funções auxiliares que sejam necessárias.
 \subsection*{Problema 1}
 
 \begin{code}
-
 inExpr :: Either Int (Op,(Expr,Expr)) -> Expr
 inExpr (Left x) = Num x
 inExpr (Right (Op o, (a, b))) = Bop a (Op o) b
-
 outExpr :: Expr -> Either Int (Op,(Expr,Expr))
 outExpr (Num x) = Left x
 outExpr (Bop a (Op o) b) = Right(Op o, (a, b))
-
-funcao :: String -> Expr
-funcao s = read s
-
 recExpr f = baseExpr id f
-
 cataExpr g = g . recExpr (cataExpr g) . outExpr
-
-teste1, teste2, teste3 :: Expr
+teste1, teste2, teste3, teste4, teste5, teste6 :: Expr
 teste1 = read "1 + 1 * (1+1)"
 teste2 = read "2 + 1 * (3+2)"
 teste3 = read "0"
-
+teste4 = read "2 + 4"
+teste5 = read "3 * (2 + 4)"
+teste6 = read "(3 * 2) + 4"
 calcula (Num x) = x
 calcula (Bop x (Op y) z) | y == "+" = (calcula x) + (calcula z)
                          | y == "*" = (calcula x) * (calcula z)
                          | otherwise = undefined
-
 show' :: Expr -> String
 show' (Num x) = show x
 show' (Bop a (Op b) c) = "(" ++ (show' a) ++ " " ++ (id b) ++ " " ++ (show' c) ++ ")"
-
+compileAux :: Expr -> Codigo
+compileAux (Num a) = ["PUSH " ++ (show a)]
+compileAux (Bop x (Op y) z) | y == "+" = concat $ (compileAux x) : (compileAux z) : [["ADD"]]
+                            | y == "*" = concat $ (compileAux x) : (compileAux z) : [["MUL"]]
+                            | otherwise = undefined
 compile :: String -> Codigo
-compile = undefined 
+compile x = compileAux $ read x
+{-
+compile :: String -> Codigo
+compile x | r == Num _ = 
+          | r == Bop (a)(Op "+")(b) = 
+          | r == Bop ()(Op "*")() = 
+          | otherwise = undefined
+    where
+        r = read x
+-}
 \end{code}
 
 \subsection*{Problema 2}
 
 \begin{code}
 inL2D :: Either a (b, (X a b,X a b)) -> X a b
-inL2D = undefined
+inL2D (Left a) = Unid a 
+inL2D (Right (b,(x,y))) = Comp b x y
 
 outL2D :: X a b -> Either a (b, (X a b,X a b))
-outL2D = undefined
+outL2D (Unid a) = Left a
+outL2D (Comp b x y) = Right (b, (x,y))   
 
-recL2D f = undefined
+recL2D f = baseL2D id id f f
 
-cataL2D g = undefined
+baseL2D f g h i = f -|- (g >< (h >< i))
 
-anaL2D g = undefined
+cataL2D g = g . recL2D (cataL2D g) . outL2D
+
+anaL2D g = inL2D . recL2D (anaL2D g) . g 
 
 collectLeafs = undefined
 
 dimen :: X Caixa Tipo -> (Float, Float)
-dimen = undefined
+dimen = cataL2D g 
+  where 
+    g :: Either Caixa (Tipo, ((Float, Float),(Float, Float))) -> (Float, Float) 
+    g (Left ((x,y),_)) = (fromIntegral x, fromIntegral y) 
+    g (Right (_,((x1,y1),(x2,y2)))) = (x1+ x2,y1+y2)
 
 calcOrigins :: ((X Caixa Tipo),Origem) -> X (Caixa,Origem) ()
-calcOrigins = undefined
+calcOrigins = anaL2D g 
+  where 
+    g (Unid caixa,origem) = Left (caixa, origem)
+    g (Comp _ x y,origem) = Right ((),((x,origem),(y,origem))) 
 
-calc :: Tipo -> Origem -> (Float, Float) -> Origem
-calc = undefined 
+agrup_caixas :: X (Caixa,Origem) () -> Fig
+agrup_caixas = cataL2D g 
+  where 
+    g (Left (caixa, origem)) = [(origem,caixa)]
+    g (Right ((),(fig1,fig2))) = fig1 ++ fig2
+
+calc :: Tipo -> Origem -> (Float, Float) -> Origem -- relação das caixas -> posição da caixa a) -> posição relativa da b) em relação à a)
+calc V  (x,y) (x2,y2) = (x2+(x/2),y2+y)
+calc Vd (x,y) (x2,y2) = (x2+x,y2+y)
+calc Ve (x,y) (x2,y2) = (x2,y2+y)
+calc H  (x,y) (x2,y2) = (x2+x,y2+(y/2))
+calc Ht (x,y) (x2,y2) = (x2+x,y2+y)
+calc Hb (x,y) (x2,y2) = (x2+x,y2)
+
+mostra_caixas :: (L2D,Origem) -> IO ()
+mostra_caixas = undefined -- display caixasAndOrigin2Pict
 
 caixasAndOrigin2Pict = undefined
 \end{code}
@@ -1191,10 +1191,22 @@ caixasAndOrigin2Pict = undefined
 \subsection*{Problema 3}
 Solução:
 \begin{code}
+
+cal x = -(x^2)/2
+
+cos' x = prj . for loop init where
+   loop (c, h, s, k) = (c + h, h * (-(x^2))/s, s + k, k + 8)
+   init = (1, a1, 12, 18)
+   a1 = -(x^2)/2
+   prj (c, h, s, k) = c
+
+{-
 cos' x = prj . for loop init where
    loop = undefined
    init = undefined
    prj = undefined
+-}
+
 \end{code}
 
 \subsection*{Problema 4}
