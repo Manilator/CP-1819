@@ -1,0 +1,1 @@
+rm  *.idx *.log *.out *.ptb *.pdf *.tex *.aux *.bbl *.blg *.ilg *.ind
