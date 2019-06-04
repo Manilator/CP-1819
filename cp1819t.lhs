@@ -1123,15 +1123,7 @@ compileAux (Bop x (Op y) z) | y == "+" = concat $ (compileAux x) : (compileAux z
                             | otherwise = undefined
 compile :: String -> Codigo
 compile x = compileAux $ read x
-{-
-compile :: String -> Codigo
-compile x | r == Num _ = 
-          | r == Bop (a)(Op "+")(b) = 
-          | r == Bop ()(Op "*")() = 
-          | otherwise = undefined
-    where
-        r = read x
--}
+
 \end{code}
 
 \subsection*{Problema 2}
@@ -1160,13 +1152,25 @@ dimen = cataL2D g
   where 
     g :: Either Caixa (Tipo, ((Float, Float),(Float, Float))) -> (Float, Float) 
     g (Left ((x,y),_)) = (fromIntegral x, fromIntegral y) 
-    g (Right (_,((x1,y1),(x2,y2)))) = (x1+ x2,y1+y2)
-
+    g (Right (H,((x1,y1),(x2,y2))))   | (y1/2) < y2 = (x1+x2,(y1/2) + y2)
+                                      | otherwise = (x1+x2,y1)
+    g (Right (Hb,((x1,y1),(x2,y2))))  = (x1+x2,max y1 y2)
+    g (Right (Ht,((x1,y1),(x2,y2))))  = (x1+x2,y1+y2)
+    g (Right (V,((x1,y1),(x2,y2))))   | (x1/2) < x2 = ((x1/2)+x2,y1+y2)
+                                      | otherwise = (x1,y1+y2)
+    g (Right (Ve,((x1,y1),(x2,y2))))  = (max x1 x2,y1+y2)
+    g (Right (Vd,((x1,y1),(x2,y2))))  = (x1+x2,y1+y2)
+ 
 calcOrigins :: ((X Caixa Tipo),Origem) -> X (Caixa,Origem) ()
 calcOrigins = anaL2D g 
   where 
+    g :: ((X Caixa Tipo),Origem) -> Either (Caixa,Origem) ((),((X Caixa Tipo,Origem),(X Caixa Tipo,Origem)))
     g (Unid caixa,origem) = Left (caixa, origem)
-    g (Comp _ x y,origem) = Right ((),((x,origem),(y,origem))) 
+    g (Comp t x y,origem) = Right ((),((x,origem),(y,calc t origem (dimen x))))
+
+dimenCaixa ((x,y),t) = (fromIntegral x,fromIntegral y)
+stringCaixa (x,(string,color)) = string
+colorCaixa (x,(string,color)) = color
 
 agrup_caixas :: X (Caixa,Origem) () -> Fig
 agrup_caixas = cataL2D g 
@@ -1175,17 +1179,21 @@ agrup_caixas = cataL2D g
     g (Right ((),(fig1,fig2))) = fig1 ++ fig2
 
 calc :: Tipo -> Origem -> (Float, Float) -> Origem -- relação das caixas -> posição da caixa a) -> posição relativa da b) em relação à a)
-calc V  (x,y) (x2,y2) = (x2+(x/2),y2+y)
+calc V  (x,y) (x2,y2) = (x+(x2/2),y2+y)
 calc Vd (x,y) (x2,y2) = (x2+x,y2+y)
-calc Ve (x,y) (x2,y2) = (x2,y2+y)
-calc H  (x,y) (x2,y2) = (x2+x,y2+(y/2))
+calc Ve (x,y) (x2,y2) = (x,y2+y)
+calc H  (x,y) (x2,y2) = (x2+x,y+(y2/2))
 calc Ht (x,y) (x2,y2) = (x2+x,y2+y)
-calc Hb (x,y) (x2,y2) = (x2+x,y2)
+calc Hb (x,y) (x2,y2) = (x2+x,y)
 
 mostra_caixas :: (L2D,Origem) -> IO ()
-mostra_caixas = undefined -- display caixasAndOrigin2Pict
+mostra_caixas x = display $ caixasAndOrigin2Pict x
 
-caixasAndOrigin2Pict = undefined
+caixasAndOrigin2Pict x = G.pictures $ map f $ agrup_caixas $ calcOrigins x
+            where 
+              f (origem, caixa) = crCaixa origem (fromIntegral $ fst $ dimenCaixa caixa) (fromIntegral $ snd $ dimenCaixa caixa) (stringCaixa caixa) (colorCaixa caixa) 
+
+
 \end{code}
 
 \subsection*{Problema 3}
@@ -1199,13 +1207,6 @@ cos' x = prj . for loop init where
    init = (1, a1, 12, 18)
    a1 = -(x^2)/2
    prj (c, h, s, k) = c
-
-{-
-cos' x = prj . for loop init where
-   loop = undefined
-   init = undefined
-   prj = undefined
--}
 
 \end{code}
 
@@ -1237,6 +1238,7 @@ check = cataFS g
       f (Left _) = []
       f (Right (h,t)) | elem h t = t
                       | otherwise = (h:t)
+
 
 tar :: FS a b -> [(Path a, b)]
 tar = cataFS g
@@ -1288,11 +1290,9 @@ rm path = untar . f path . tar
     f path ((p,file):t) | path == p = t
                         | otherwise = (p,file):f path t
 
-auxJoin :: ([(a, Either b c)],d) -> [(a, Either b (d,c))]
-auxJoin = undefined
-
 cFS2Exp :: a -> FS a b -> (Exp () a)
 cFS2Exp = undefined
+
 \end{code}
 
 %----------------- Fim do anexo com soluções dos alunos ------------------------%
