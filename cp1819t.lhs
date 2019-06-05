@@ -1224,6 +1224,23 @@ baseFS f g h = map (f >< (g -|- h))
 cataFS :: ([(a, Either b c)] -> c) -> FS a b -> c
 cataFS g = g . recFS (cataFS g) . outFS  
 
+\end{code}
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |FS A B|
+           \ar[d]_-{|cataFS g|}
+           \ar[r]_-{|outFS|}
+&
+    |[A >< (B + FS A B)]|
+           \ar[d]^-{|map (id + id >< cataFS g)|}
+\\
+    |C|
+&
+    |[A >< (B + C)]|
+           \ar[l]^-{|g|}
+}
+\begin{code}
+
 anaFS :: (c -> [(a, Either b c)]) -> c -> FS a b
 anaFS g = inFS . recFS (anaFS g) . g
 
@@ -1241,16 +1258,16 @@ check = cataFS g
 \end{code}
 \begin{eqnarray*}
 \xymatrix@@C=2cm{
-    |FS a b|
+    |FS A B|
            \ar[d]_-{|cataFS g|}
+           \ar[r]_-{|outFS|}
 &
-    |[a >< (b -|- FS a b)]|
-           \ar[d]^{|id + (cataFS g)|}
-           \ar[l]_-{|inFS|}
+    |[A >< (B + FS A B)]|
+           \ar[d]^-{|map (id + id >< cataFS g)|}
 \\
-     |Bool|
+    |Bool|
 &
-     |[a >< (b -|- Bool)]|
+    |[A >< (B + Bool)]|
            \ar[l]^-{|g|}
 }
 \end{eqnarray*}
@@ -1263,6 +1280,21 @@ tar = cataFS g
       f (a, Right lista) = map (h a) lista
       h elemento (lista2,conteudo) = (elemento:lista2,conteudo)
 \end{code}
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |FS A B|
+           \ar[d]_-{|cataFS g|}
+           \ar[r]_-{|outFS|}
+&
+    |[A >< (B + FS A B)]|
+           \ar[d]^-{|map (id + id >< cataFS g)|}
+\\
+    |[(Path A, B)]|
+&
+    |[A >< (B + [(Path A, B)])]|
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
 \begin{code}
 untar :: (Eq a) => [(Path a, b)] -> FS a b
 untar = anaFS g
@@ -1271,6 +1303,21 @@ untar = anaFS g
       f ([h], file) = (h, Left file)
       f ((h:t),file) = (h,Right [(t,file)])
 \end{code}
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |[(Path A, B)]|
+           \ar[d]_-{|cataFS g|}
+           \ar[r]_-{|g|}
+&
+    |[A >< (B + [(Path A, B)])]|
+           \ar[d]^-{|map (id + id >< cataFS g)|}
+\\
+    |FS A B|
+&
+    |[A >< (B + FS A B)]|
+           \ar[l]^-{|inFS|}
+}
+\end{eqnarray*}
 \begin{code}
 find :: (Eq a) => a -> FS a b -> [Path a]
 find file = filter (not . null) . cataFS (concat . g)
@@ -1283,6 +1330,21 @@ find file = filter (not . null) . cataFS (concat . g)
       insA a [] = [a]
       insA a l = a:l
 \end{code}
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |FS A B|
+           \ar[d]_-{|cataFS g|}
+           \ar[r]_-{|outFS|}
+&
+    |[A >< (B + FS A B)]|
+           \ar[d]^-{|map (id + id >< cataFS g)|}
+\\
+    |[Path A]|
+&
+    |[A >< (B + [Path A])]|
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
 \begin{code}
 new :: (Eq a) => Path a -> b -> FS a b -> FS a b
 new path file = untar . f (path,file) . tar 
