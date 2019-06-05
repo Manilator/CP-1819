@@ -1149,6 +1149,8 @@ teste6 = read "(3 * 2) + 4"
 calcula (Num x) = x
 calcula (Bop x (Op y) z) | y == "+" = (calcula x) + (calcula z)
                          | y == "*" = (calcula x) * (calcula z)
+                         | y == "-" = (calcula x) - (calcula z)
+                         | y == "/" = div (calcula x) (calcula z)
                          | otherwise = undefined
 
 show' :: Expr -> String
@@ -1159,20 +1161,12 @@ compileAux :: Expr -> Codigo
 compileAux (Num a) = ["PUSH " ++ (show a)]
 compileAux (Bop x (Op y) z) | y == "+" = concat $ (compileAux x) : (compileAux z) : [["ADD"]]
                             | y == "*" = concat $ (compileAux x) : (compileAux z) : [["MUL"]]
+                            | y == "-" = concat $ (compileAux x) : (compileAux z) : [["SUB"]]
+                            | y == "/" = concat $ (compileAux x) : (compileAux z) : [["DIV"]]
                             | otherwise = undefined
 
 compile :: String -> Codigo
 compile x = compileAux $ read x
-
-{-
-compile :: String -> Codigo
-compile x | r == Num _ = 
-          | r == Bop (a)(Op "+")(b) = 
-          | r == Bop ()(Op "*")() = 
-          | otherwise = undefined
-    where
-        r = read x
--}
 
 \end{code}
 
