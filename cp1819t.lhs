@@ -1238,8 +1238,23 @@ check = cataFS g
       f (Left _) = []
       f (Right (h,t)) | elem h t = t
                       | otherwise = (h:t)
-
-
+\end{code}
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |FS a b|
+           \ar[d]_-{|cataFS g|}
+&
+    |[a >< (b -|- FS a b)]|
+           \ar[d]^{|id + (cataFS g)|}
+           \ar[l]_-{|inFS|}
+\\
+     |Bool|
+&
+     |[a >< (b -|- Bool)]|
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+\begin{code}
 tar :: FS a b -> [(Path a, b)]
 tar = cataFS g
     where
@@ -1247,15 +1262,16 @@ tar = cataFS g
       f (a, Left b) = [([a],b)]
       f (a, Right lista) = map (h a) lista
       h elemento (lista2,conteudo) = (elemento:lista2,conteudo)
-
+\end{code}
+\begin{code}
 untar :: (Eq a) => [(Path a, b)] -> FS a b
 untar = anaFS g
     where
       g l = map f l
       f ([h], file) = (h, Left file)
       f ((h:t),file) = (h,Right [(t,file)])
-
-
+\end{code}
+\begin{code}
 find :: (Eq a) => a -> FS a b -> [Path a]
 find file = filter (not . null) . cataFS (concat . g)
     where 
@@ -1266,12 +1282,14 @@ find file = filter (not . null) . cataFS (concat . g)
                       | otherwise = l
       insA a [] = [a]
       insA a l = a:l
-
+\end{code}
+\begin{code}
 new :: (Eq a) => Path a -> b -> FS a b -> FS a b
 new path file = untar . f (path,file) . tar 
   where
     f a l = a:l 
-
+\end{code}
+\begin{code}
 cp :: (Eq a) => Path a -> Path a -> FS a b -> FS a b
 cp src fnl = untar . (f src fnl) . tar
   where
@@ -1281,7 +1299,8 @@ cp src fnl = untar . (f src fnl) . tar
     f p1 p2 l = (p2,procura p1 l):l
     procura path ((p,file):t) | p == path = file
                               | otherwise = procura path t 
-
+\end{code}
+\begin{code}
 rm :: (Eq a) => (Path a) -> (FS a b) -> FS a b
 rm path = untar . f path . tar
   where 
@@ -1289,11 +1308,13 @@ rm path = untar . f path . tar
     f _ [] = []
     f path ((p,file):t) | path == p = t
                         | otherwise = (p,file):f path t
-
+\end{code}
+\begin{code}
 cFS2Exp :: a -> FS a b -> (Exp () a)
 cFS2Exp = undefined
 
 \end{code}
+
 
 %----------------- Fim do anexo com soluções dos alunos ------------------------%
 
