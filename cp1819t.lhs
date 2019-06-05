@@ -1120,31 +1120,34 @@ cataExpr g = g . recExpr (cataExpr g) . outExpr
 \end{eqnarray*}
 \subsubsection*{Função calcula}
 \begin{code}
-calcula (Num x) = x
-calcula (Bop x (Op y) z) | y == "+" = (calcula x) + (calcula z)
-                         | y == "*" = (calcula x) * (calcula z)
-                         | y == "-" = (calcula x) - (calcula z)
-                         | y == "/" = div (calcula x) (calcula z)
-                         | otherwise = undefined
-\end{code}
-\subsubsection*{Função show'}
-\begin{code}
-show' :: Expr -> String
-show' (Num x) = show x
-show' (Bop a (Op b) c) = "(" ++ (show' a) ++ " " ++ (id b) ++ " " ++ (show' c) ++ ")"
+
+calcula :: Expr -> Int
+calcula = cataExpr (either id aux) where
+  aux (Op o, (x, y))| o == "+" = x + y
+                    | o == "*" = x * y
+                    | o == "-" = x - y
+                    | o == "/" = div x y
+
 \end{code}
 \subsubsection*{Função compile}
 \begin{code}
-compileAux :: Expr -> Codigo
-compileAux (Num a) = ["PUSH " ++ (show a)]
-compileAux (Bop x (Op y) z) | y == "+" = concat $ (compileAux x) : (compileAux z) : [["ADD"]]
-                            | y == "*" = concat $ (compileAux x) : (compileAux z) : [["MUL"]]
-                            | y == "-" = concat $ (compileAux x) : (compileAux z) : [["SUB"]]
-                            | y == "/" = concat $ (compileAux x) : (compileAux z) : [["DIV"]]
-                            | otherwise = undefined
 
 compile :: String -> Codigo
-compile x = compileAux $ read x
+compile = cataExpr (either aux1 aux2) . getExp where
+  aux1 x = ["PUSH" ++ " " ++ show x]
+  aux2 (Op x,(y,z))| x == "*" = y ++ z ++ ["MUL"]
+                   | x == "+" = y ++ z ++ ["ADD"]
+                   | x == "-" = y ++ z ++ ["SUB"]
+                   | x == "/" = y ++ z ++ ["DIV"]
+  getExp = fst . head . readExp
+
+\end{code}
+\subsubsection*{Função show'}
+\begin{code}
+
+show' :: Expr -> String
+show' = cataExpr (either show aux) where
+  aux (Op o, (x,y)) = "(" ++ x ++ " " ++ o ++ " " ++ y ++ ")"
 
 \end{code}
 
