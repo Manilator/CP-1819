@@ -93,7 +93,7 @@
 \\
            Trabalho Prático
 \\
-           MiEI+LCC --- 2018/19
+            MiEI --- 2018/19
 }
 
 \author{
@@ -113,13 +113,13 @@
 
 \begin{center}\large
 \begin{tabular}{ll}
-\textbf{Grupo} nr. & 99 (preencher)
+\textbf{Grupo} nr. & 4
 \\\hline
-a11111 & Nome1 (preencher)	
+a83920 & Afonso Trindade Araújo de Pascoal Faria	
 \\
-a22222 & Nome2 (preencher)	
+a83840 & Maria Moutinho Figueiredo da Silva 
 \\
-a33333 & Nome3 (preencher)	
+a86435 & Miguel André da Silva Solino 
 \end{tabular}
 \end{center}
 
@@ -1092,7 +1092,7 @@ alterados os nomes ou tipos das funções dadas, mas pode ser adicionado texto e
 outras funções auxiliares que sejam necessárias.
 
 \subsection*{Problema 1}
-
+\subsubsection*{Funções gerais:}
 \begin{code}
 inExpr :: Either Int (Op,(Expr,Expr)) -> Expr
 inExpr (Left x) = Num x
@@ -1102,22 +1102,39 @@ outExpr (Num x) = Left x
 outExpr (Bop a (Op o) b) = Right(Op o, (a, b))
 recExpr f = baseExpr id f
 cataExpr g = g . recExpr (cataExpr g) . outExpr
-teste1, teste2, teste3, teste4, teste5, teste6 :: Expr
-teste1 = read "1 + 1 * (1+1)"
-teste2 = read "2 + 1 * (3+2)"
-teste3 = read "0"
-teste4 = read "2 + 4"
-teste5 = read "3 * (2 + 4)"
-teste6 = read "(3 * 2) + 4"
+\end{code}
+\begin{eqnarray*}
+\xymatrix@@C=4cm{
+    |Expr|
+           \ar[d]_-{|cataExpr g|}
+           \ar[r]_-{|outExpr|}
+&
+    |Int + (Op >< (Expr >< Expr))|
+           \ar[d]^-{|map (id + (id >< (cataExpr g >< cataExpr g)|}
+\\
+    |C|
+&
+    |Int + (Op >< (C >< C))|
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+\subsubsection*{Função calcula}
+\begin{code}
 calcula (Num x) = x
 calcula (Bop x (Op y) z) | y == "+" = (calcula x) + (calcula z)
                          | y == "*" = (calcula x) * (calcula z)
                          | y == "-" = (calcula x) - (calcula z)
                          | y == "/" = div (calcula x) (calcula z)
                          | otherwise = undefined
+\end{code}
+\subsubsection*{Função show'}
+\begin{code}
 show' :: Expr -> String
 show' (Num x) = show x
 show' (Bop a (Op b) c) = "(" ++ (show' a) ++ " " ++ (id b) ++ " " ++ (show' c) ++ ")"
+\end{code}
+\subsubsection*{Função compile}
+\begin{code}
 compileAux :: Expr -> Codigo
 compileAux (Num a) = ["PUSH " ++ (show a)]
 compileAux (Bop x (Op y) z) | y == "+" = concat $ (compileAux x) : (compileAux z) : [["ADD"]]
@@ -1125,13 +1142,14 @@ compileAux (Bop x (Op y) z) | y == "+" = concat $ (compileAux x) : (compileAux z
                             | y == "-" = concat $ (compileAux x) : (compileAux z) : [["SUB"]]
                             | y == "/" = concat $ (compileAux x) : (compileAux z) : [["DIV"]]
                             | otherwise = undefined
+
 compile :: String -> Codigo
 compile x = compileAux $ read x
 
 \end{code}
 
 \subsection*{Problema 2}
-
+\subsubsection*{Funções gerais:}
 \begin{code}
 inL2D :: Either a (b, (X a b,X a b)) -> X a b
 inL2D (Left a) = Unid a 
@@ -1146,11 +1164,45 @@ recL2D f = baseL2D id id f f
 baseL2D f g h i = f -|- (g >< (h >< i))
 
 cataL2D g = g . recL2D (cataL2D g) . outL2D
-
+\end{code}
+\begin{eqnarray*}
+\xymatrix@@C=4cm{
+    |X A B|
+           \ar[d]_-{|cataL2D g|}
+           \ar[r]_-{|outL2D|}
+&
+    |A + (B >< (X A B >< X A B))|
+           \ar[d]^-{|map (id + (id >< (cataL2D g >< cataL2D g)|}
+\\
+    |C|
+&
+    |A + (B >< (C >< C))|
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+\begin{code}
 anaL2D g = inL2D . recL2D (anaL2D g) . g 
-
+\end{code}
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |C|
+           \ar[d]_-{|anaL2D g|}
+           \ar[r]_-{|g|}
+&
+    |A + (B >< (C >< C))|
+           \ar[d]^-{|map (id + (id >< (anaL2D g >< anaL2D g)|}
+\\
+    |X A B|
+&
+    |A + (B >< (X A B >< X A B))|
+           \ar[l]^-{|inFS|}
+}
+\end{eqnarray*}
+\begin{code}
 collectLeafs = undefined
-
+\end{code}
+\subsubsection*{Função dimen}
+\begin{code}
 dimen :: X Caixa Tipo -> (Float, Float)
 dimen = cataL2D g 
   where 
@@ -1164,24 +1216,71 @@ dimen = cataL2D g
                                       | otherwise = (x1,y1+y2)
     g (Right (Ve,((x1,y1),(x2,y2))))  = (max x1 x2,y1+y2)
     g (Right (Vd,((x1,y1),(x2,y2))))  = (x1+x2,y1+y2)
- 
+\end{code}
+\begin{eqnarray*}
+\xymatrix@@C=3cm{
+    |X Caixa Tipo|
+           \ar[d]_-{|cataL2D g|}
+           \ar[r]_-{|outL2D|}
+&
+    |Caixa + (Tipo >< (X Caixa Tipo >< X Caixa Tipo))|
+           \ar[d]^-{|map (id + (id >< (cataL2D g >< cataL2D g)|}
+\\
+    |(Float,Float)|
+&
+    |Caixa + (Tipo >< ((Float,Float) >< (Float,Float)))|
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+\subsubsection*{Função calcOrigins}
+\begin{code}
 calcOrigins :: ((X Caixa Tipo),Origem) -> X (Caixa,Origem) ()
 calcOrigins = anaL2D g 
   where 
     g :: ((X Caixa Tipo),Origem) -> Either (Caixa,Origem) ((),((X Caixa Tipo,Origem),(X Caixa Tipo,Origem)))
     g (Unid caixa,origem) = Left (caixa, origem)
     g (Comp t x y,origem) = Right ((),((x,origem),(y,calc t origem (dimen x))))
-
-dimenCaixa ((x,y),t) = (fromIntegral x,fromIntegral y)
-stringCaixa (x,(string,color)) = string
-colorCaixa (x,(string,color)) = color
-
+\end{code}
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |((X Caixa Tipo),Origem)|
+           \ar[d]_-{|anaL2D g|}
+           \ar[r]_-{|g|}
+&
+    |A + (B >< ((X Caixa Tipo),Origem) >< ((X Caixa Tipo),Origem)))|
+           \ar[d]^-{|map (id + (id >< (anaL2D g >< anaL2D g)|}
+\\
+    |X (Caixa,Origem) ()|
+&
+    |A + (B >< (X (Caixa,Origem) () >< X (Caixa,Origem) ()))|
+           \ar[l]^-{|inFS|}
+}
+\end{eqnarray*}
+\subsubsection*{Função agrup\_caixas}
+\begin{code}
 agrup_caixas :: X (Caixa,Origem) () -> Fig
 agrup_caixas = cataL2D g 
   where 
     g (Left (caixa, origem)) = [(origem,caixa)]
     g (Right ((),(fig1,fig2))) = fig1 ++ fig2
-
+\end{code}
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |X (Caixa,Origem) ()|
+           \ar[d]_-{|cataL2D g|}
+           \ar[r]_-{|outL2D|}
+&
+    |Caixa + (Tipo >< (X (Caixa,Origem) () >< X (Caixa,Origem) ()))|
+           \ar[d]^-{|map (id + (id >< (cataL2D g >< cataL2D g)|}
+\\
+    |Fig|
+&
+    |Caixa + (Tipo >< (Fig >< Fig))|
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+\subsubsection*{Função calc}
+\begin{code}
 calc :: Tipo -> Origem -> (Float, Float) -> Origem -- relação das caixas -> posição da caixa a) -> posição relativa da b) em relação à a)
 calc V  (x,y) (x2,y2) = (x+(x2/2),y2+y)
 calc Vd (x,y) (x2,y2) = (x2+x,y2+y)
@@ -1189,19 +1288,26 @@ calc Ve (x,y) (x2,y2) = (x,y2+y)
 calc H  (x,y) (x2,y2) = (x2+x,y+(y2/2))
 calc Ht (x,y) (x2,y2) = (x2+x,y2+y)
 calc Hb (x,y) (x2,y2) = (x2+x,y)
-
+\end{code}
+\subsubsection*{Função mostra\_caixas}
+\begin{code}
 mostra_caixas :: (L2D,Origem) -> IO ()
 mostra_caixas x = display $ caixasAndOrigin2Pict x
-
+\end{code}
+\subsubsection*{Função caixasAndOrigin2Pict}
+\begin{code}
 caixasAndOrigin2Pict x = G.pictures $ map f $ agrup_caixas $ calcOrigins x
             where 
               f (origem, caixa) = crCaixa origem (fromIntegral $ fst $ dimenCaixa caixa) (fromIntegral $ snd $ dimenCaixa caixa) (stringCaixa caixa) (colorCaixa caixa) 
-
-
 \end{code}
-
+\subsubsection*{Função auxiliares}
+\begin{code}
+dimenCaixa ((x,y),t) = (fromIntegral x,fromIntegral y)
+stringCaixa (x,(string,color)) = string
+colorCaixa (x,(string,color)) = color
+\end{code}
 \subsection*{Problema 3}
-Solução:
+\subsubsection*{Solução}
 \begin{code}
 
 cal x = -(x^2)/2
@@ -1215,7 +1321,7 @@ cos' x = prj . for loop init where
 \end{code}
 
 \subsection*{Problema 4}
-Triologia ``ana-cata-hilo":
+\subsubsection*{Triologia ``ana-cata-hilo":}
 \begin{code}
 outFS (FS l) = map f l
         where
@@ -1243,14 +1349,59 @@ cataFS g = g . recFS (cataFS g) . outFS
     |[A >< (B + C)]|
            \ar[l]^-{|g|}
 }
+\end{eqnarray*}
 \begin{code}
-
 anaFS :: (c -> [(a, Either b c)]) -> c -> FS a b
 anaFS g = inFS . recFS (anaFS g) . g
-
+\end{code}
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |C|
+           \ar[d]_-{|anaFS g|}
+           \ar[r]_-{|g|}
+&
+    |[A >< (B + C)]|
+           \ar[d]^-{|map (id + id >< anaFS g)|}
+\\
+    |FS A B|
+&
+    |[A >< (B + FS A B)]|
+           \ar[l]^-{|inFS|}
+}
+\end{eqnarray*}
+\begin{code}
 hyloFS g h = cataFS g . anaFS h
 \end{code}
+\begin{eqnarray*}
+\xymatrix@@C=4cm{
+    |FS A B|
+           \ar[d]_-{|cataFS g|}
+           \ar[r]_-{|outFS|}
+&
+    |[A >< (B + FS A B)]|
+           \ar[d]^-{|map (id + id >< cataFS g)|}
+\\
+    |C|
+    \ar[d]_-{|id|}
+&
+    |[A >< (B + C)]|
+           \ar[l]^-{|g|}
+\\
+    |C|
+           \ar[d]_-{|anaFS g|}
+           \ar[r]_-{|g|}
+&
+    |[A >< (B + C)]|
+           \ar[d]^-{|map (id + id >< anaFS g)|}
+\\
+    |FS A B|
+&
+    |[A >< (B + FS A B)]|
+           \ar[l]^-{|inFS|}
+}
+\end{eqnarray*}
 Outras funções pedidas:
+\subsubsection*{Função check}
 \begin{code}
 check :: (Eq a) => FS a b -> Bool
 check = cataFS g
@@ -1275,6 +1426,7 @@ check = cataFS g
            \ar[l]^-{|g|}
 }
 \end{eqnarray*}
+\subsubsection*{Função tar}
 \begin{code}
 tar :: FS a b -> [(Path a, b)]
 tar = cataFS g
@@ -1299,6 +1451,7 @@ tar = cataFS g
            \ar[l]^-{|g|}
 }
 \end{eqnarray*}
+\subsubsection*{Função untar}
 \begin{code}
 untar :: (Eq a) => [(Path a, b)] -> FS a b
 untar = anaFS g
@@ -1322,6 +1475,7 @@ untar = anaFS g
            \ar[l]^-{|inFS|}
 }
 \end{eqnarray*}
+\subsubsection*{Função find}
 \begin{code}
 find :: (Eq a) => a -> FS a b -> [Path a]
 find file = filter (not . null) . cataFS (concat . g)
@@ -1349,12 +1503,17 @@ find file = filter (not . null) . cataFS (concat . g)
            \ar[l]^-{|g|}
 }
 \end{eqnarray*}
+\subsubsection*{Função new}
 \begin{code}
 new :: (Eq a) => Path a -> b -> FS a b -> FS a b
 new path file = untar . f (path,file) . tar 
   where
     f a l = a:l 
 \end{code}
+\textbf{Resposta:} Continua a ser válida pois como a check vê se existe ficheiros e diretorias repetidas
+e a checkFiles vê apenas ficheiros, então neste caso não vai fazer diferença porque o que as duas tem em comum é o que a função \textit{new} adiciona.
+
+\subsubsection*{Função cp}
 \begin{code}
 cp :: (Eq a) => Path a -> Path a -> FS a b -> FS a b
 cp src fnl = untar . (f src fnl) . tar
@@ -1366,6 +1525,7 @@ cp src fnl = untar . (f src fnl) . tar
     procura path ((p,file):t) | p == path = file
                               | otherwise = procura path t 
 \end{code}
+\subsubsection*{Função rm}
 \begin{code}
 rm :: (Eq a) => (Path a) -> (FS a b) -> FS a b
 rm path = untar . f path . tar
